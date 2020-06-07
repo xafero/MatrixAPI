@@ -126,7 +126,7 @@ namespace libMatrix
         }
 
         [MatrixSpec("r0.0.1/client_server.html#post-matrix-client-r0-login")]
-        public async void ClientLogin(Requests.Session.MatrixLogin login)
+        public async Task ClientLogin(Requests.Session.MatrixLogin login)
         {
             var tuple = await _backend.Post("/_matrix/client/r0/login", false, Helpers.JsonHelper.Serialize(login));
             MatrixRequestError err = tuple.Item1;
