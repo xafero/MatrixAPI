@@ -1,23 +1,24 @@
 ﻿using System;
 using System.Diagnostics;
-using Windows.System.Threading;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace libMatrix
 {
     public partial class MatrixAPI
     {
-        private ThreadPoolTimer _pollThread;
-
         private bool isRunningSync = false;
 
         public bool shouldFullSync = false;
+        
+        public TimeSpan period = TimeSpan.FromMilliseconds(250);
 
-        public void StartSyncThreads()
-        {
-            TimeSpan period = TimeSpan.FromMilliseconds(250);
+        public CancellationTokenSource syncThreadCts;
 
-            _pollThread = ThreadPoolTimer.CreatePeriodicTimer(async (source) =>
-            {
+        public Task StartSyncThreads() {
+            syncThreadCts = new CancellationTokenSource();
+            
+            return Task.Run(async () => {
                 if (!isRunningSync)
                 {
                     isRunningSync = true;
@@ -41,13 +42,14 @@ namespace libMatrix
 
                     isRunningSync = false;
                 }
-            }, period);
+
+                await Task.Delay(period, syncThreadCts.Token);
+            }, syncThreadCts.Token);
         }
 
         public void StopSyncThreads()
         {
-            _pollThread.Cancel();
-
+            syncThreadCts.Cancel();
             FlushMessageQueue();
         }
     }
