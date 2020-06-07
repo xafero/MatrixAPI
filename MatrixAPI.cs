@@ -236,7 +236,7 @@ namespace libMatrix
             return uriPath;
         }
 
-        public async void JoinedRooms()
+        public async Task<IEnumerable<string>> JoinedRooms()
         {
             var tuple = await _backend.Get("/_matrix/client/r0/joined_rooms", true);
             MatrixRequestError err = tuple.Item1;
@@ -244,7 +244,10 @@ namespace libMatrix
             if (err.IsOk)
             {
                 // Parse joined rooms
-                ParseJoinedRooms(result);
+                return ParseJoinedRooms(result);
+            }
+            else {
+                throw new MatrixException(err.ToString());
             }
         }
 

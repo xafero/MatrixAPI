@@ -152,7 +152,7 @@ namespace libMatrix
             }
         }
 
-        private void ParseJoinedRooms(string resp)
+        private List<string> ParseJoinedRooms(string resp)
         {
             try
             {
@@ -162,6 +162,7 @@ namespace libMatrix
                     Responses.JoinedRooms response = (ser.ReadObject(stream) as Responses.JoinedRooms);
 
                     var thing = response.Rooms;
+                    return thing;
                 }
             }
             catch
