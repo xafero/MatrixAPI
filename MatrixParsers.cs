@@ -40,7 +40,6 @@ namespace libMatrix
 
                     this.UserID = response.UserID;
                     this.DeviceID = response.DeviceID;
-                    //this.HomeServer = response.HomeServer;
 
                     this._backend.SetAccessToken(response.AccessToken);
 
@@ -68,7 +67,6 @@ namespace libMatrix
             catch
             {
                 return null;
-                //throw new MatrixException("Failed to parse UserProfile");
             }
         }
 
@@ -76,33 +74,22 @@ namespace libMatrix
         {
             try
             {
-                //using (MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(resp)))
-                {
-                    /*DataContractJsonSerializerSettings settings = new DataContractJsonSerializerSettings();
-                    settings.UseSimpleDictionaryFormat = true;
-
-                    var ser = new DataContractJsonSerializer(typeof(Responses.MatrixSync), settings);
-                    Responses.MatrixSync response = (ser.ReadObject(stream) as Responses.MatrixSync);*/
-
                     Responses.MatrixSync response = Newtonsoft.Json.JsonConvert.DeserializeObject<Responses.MatrixSync>(resp);
 
                     SyncToken = response.NextBatch;
 
                     foreach (var room in response.Rooms.Join)
                     {
-                        // Fire event for room joined
                         _events.FireRoomJoinEvent(room.Key, room.Value);
                     }
 
                     foreach (var room in response.Rooms.Invite)
                     {
-                        // Fire event for invite
                         _events.FireRoomInviteEvent(room.Key, room.Value);
                     }
 
                     foreach (var room in response.Rooms.Leave)
                     {
-                        // Fire event for room leave
                         _events.FireRoomLeaveEvent(room.Key, room.Value);
                     }
 
@@ -124,9 +111,7 @@ namespace libMatrix
                         }
                     }
 
-                    // Do stuff
                     IsConnected = true;
-                }
             }
             catch (Exception e)
             {
