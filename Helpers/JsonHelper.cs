@@ -8,11 +8,11 @@ namespace libMatrix.Helpers
     {
         public static string Serialize(object instance)
         {
-            using (MemoryStream _Stream = new MemoryStream())
+            using (var stream = new MemoryStream())
             {
-                var _Serializer = new DataContractJsonSerializer(instance.GetType());
-                _Serializer.WriteObject(_Stream, instance);
-                return Encoding.UTF8.GetString(_Stream.ToArray(), 0, (int)_Stream.Length);
+                var serializer = new DataContractJsonSerializer(instance.GetType());
+                serializer.WriteObject(stream, instance);
+                return Encoding.UTF8.GetString(stream.ToArray(), 0, (int)stream.Length);
             }
         }
     }

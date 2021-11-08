@@ -1,4 +1,6 @@
 ﻿using libMatrix.Responses;
+using libMatrix.Responses.Events;
+using libMatrix.Responses.Events.Room;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -15,7 +17,7 @@ namespace libMatrix.Helpers
         }
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            List<MatrixEvents> lst = new List<MatrixEvents>();
+            var lst = new List<MatrixEvents>();
 
             if (reader.TokenType == JsonToken.StartArray)
             {
@@ -26,55 +28,55 @@ namespace libMatrix.Helpers
                     switch (item["type"].Value<string>())
                     {
                         case "m.direct":
-                            lst.Add(item.ToObject<Responses.Events.Direct>());
+                            lst.Add(item.ToObject<Direct>());
                             break;
 
                         case "m.presence":
-                            lst.Add(item.ToObject<Responses.Events.Presence>());
+                            lst.Add(item.ToObject<Presence>());
                             break;
 
                         case "m.typing":
-                            lst.Add(item.ToObject<Responses.Events.Typing>());
+                            lst.Add(item.ToObject<Typing>());
                             break;
 
                         case "m.room.avatar":
-                            lst.Add(item.ToObject<Responses.Events.Room.Avatar>());
+                            lst.Add(item.ToObject<Avatar>());
                             break;
 
                         case "m.room.canonical_alias":
-                            lst.Add(item.ToObject<Responses.Events.Room.CanonicalAlias>());
+                            lst.Add(item.ToObject<CanonicalAlias>());
                             break;
 
                         case "m.room.create":
-                            lst.Add(item.ToObject<Responses.Events.Room.Create>());
+                            lst.Add(item.ToObject<Create>());
                             break;
 
                         case "m.room.guest_access":
-                            lst.Add(item.ToObject<Responses.Events.Room.GuestAccess>());
+                            lst.Add(item.ToObject<GuestAccess>());
                             break;
 
                         case "m.room.join_rules":
-                            lst.Add(item.ToObject<Responses.Events.Room.JoinRules>());
+                            lst.Add(item.ToObject<JoinRules>());
                             break;
 
                         case "m.room.member":
-                            lst.Add(item.ToObject<Responses.Events.Room.Member>());
+                            lst.Add(item.ToObject<Member>());
                             break;
 
                         case "m.room.message":
-                            lst.Add(item.ToObject<Responses.Events.Room.Message>());
+                            lst.Add(item.ToObject<Message>());
                             break;
 
                         case "m.room.name":
-                            lst.Add(item.ToObject<Responses.Events.Room.Name> ());
+                            lst.Add(item.ToObject<Name> ());
                             break;
 
                         case "m.room.topic":
-                            lst.Add(item.ToObject<Responses.Events.Room.Topic>());
+                            lst.Add(item.ToObject<Topic>());
                             break;
 
                         case "m.sticker":
-                            lst.Add(item.ToObject<Responses.Events.Sticker>());
+                            lst.Add(item.ToObject<Sticker>());
                             break;
 
                         default:
@@ -101,7 +103,7 @@ namespace libMatrix.Helpers
     {
         public override bool CanConvert(Type objectType)
         {
-            return typeof(Responses.Events.Room.MessageContent).IsAssignableFrom(objectType);
+            return typeof(MessageContent).IsAssignableFrom(objectType);
         }
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
@@ -113,19 +115,19 @@ namespace libMatrix.Helpers
                 switch (item["msgtype"].Value<string>())
                 {
                     case "m.image":
-                        return item.ToObject<Responses.Events.Room.MessageImageContent>();
+                        return item.ToObject<MessageImageContent>();
 
                     case "m.location":
-                        return item.ToObject<Responses.Events.Room.MessageLocationContent>();
+                        return item.ToObject<MessageLocationContent>();
 
                     case "m.text":
                     case "m.notice":
                     case "m.emote":
-                        return item.ToObject<Responses.Events.Room.MessageContent>();
+                        return item.ToObject<MessageContent>();
 
                     default:
                         Debug.WriteLine("Unknown message type: " + item["msgtype"]);
-                        return item.ToObject<Responses.Events.Room.MessageContent>();
+                        return item.ToObject<MessageContent>();
                 }
             }
 
