@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.Serialization;
 
 namespace libMatrix.Requests.Rooms.Message
 {
-    [DataContract]
+	[DataContract]
     public class MatrixRoomMessageImage : MatrixRoomMessageBase
     {
         public MatrixRoomMessageImage()

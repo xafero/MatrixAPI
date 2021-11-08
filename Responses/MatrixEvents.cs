@@ -1,10 +1,8 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Runtime.Serialization;
+﻿using System.Runtime.Serialization;
 
 namespace libMatrix.Responses
 {
-    [DataContract]
+	[DataContract]
     public class MatrixEvents
     {
         [DataMember(Name = "origin_server_ts")]

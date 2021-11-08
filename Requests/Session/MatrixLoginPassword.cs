@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.Serialization;
 
 namespace libMatrix.Requests.Session
 {
-    [DataContract]
+	[DataContract]
     public class MatrixLoginPassword : MatrixLogin
     {
         public MatrixLoginPassword(string _user, string _pass)
