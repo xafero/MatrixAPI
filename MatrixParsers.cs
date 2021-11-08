@@ -2,79 +2,70 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
+using libMatrix.Responses;
+using libMatrix.Responses.Media;
+using libMatrix.Responses.Pushers;
+using libMatrix.Responses.Rooms;
+using libMatrix.Responses.Session;
+using libMatrix.Responses.UserData;
+using Newtonsoft.Json;
 
 namespace libMatrix
 {
-    public partial class MatrixAPI
+	public partial class MatrixAPI
     {
         private string[] ParseClientVersions(string resp)
         {
-            try
-            {
-                using (MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(resp)))
-                {
-                    var ser = new DataContractJsonSerializer(typeof(Responses.VersionResponse));
-                    Responses.VersionResponse response = (ser.ReadObject(stream) as Responses.VersionResponse);
-
-                    return response.Versions;
-                }
-            }
-            catch
-            {
-                throw new MatrixException("Failed to parse ClientVersions");
-            }
+            var response = ParseResponse<VersionResponse>(resp);
+            return response.Versions;
         }
 
         private void ParseLoginResponse(string resp)
         {
-            try
-            {
-                using (MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(resp)))
-                {
-                    var ser = new DataContractJsonSerializer(typeof(Responses.Session.LoginResponse));
-                    Responses.Session.LoginResponse response = (ser.ReadObject(stream) as Responses.Session.LoginResponse);
+            var response = ParseResponse<LoginResponse>(resp);
 
-                    this.UserID = response.UserID;
-                    this.DeviceID = response.DeviceID;
+            UserID = response.UserID;
+            DeviceID = response.DeviceID;
 
-                    this._backend.SetAccessToken(response.AccessToken);
+            _backend.SetAccessToken(response.AccessToken);
 
-                    _events.FireLoginEvent(response);
-                }
-            }
-            catch
-            {
-                throw new MatrixException("Failed to parse LoginResponse");
-            }
+            _events.FireLoginEvent(response);
         }
 
-        private Responses.UserData.UserProfileResponse ParseUserProfile(string resp)
+        private static T ParseResponse<T>(string resp) where T : class
         {
+            var type = typeof(T);
             try
             {
-                using (MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(resp)))
+                var bytes = Encoding.UTF8.GetBytes(resp);
+                using (var stream = new MemoryStream(bytes))
                 {
-                    var ser = new DataContractJsonSerializer(typeof(Responses.UserData.UserProfileResponse));
-                    Responses.UserData.UserProfileResponse response = (ser.ReadObject(stream) as Responses.UserData.UserProfileResponse);
-
+                    var ser = new DataContractJsonSerializer(type);
+                    var obj = ser.ReadObject(stream);
+                    var response = obj as T;
                     return response;
                 }
             }
             catch
             {
-                return null;
+                throw new MatrixException($"Failed to parse {type.Name}");
             }
+        }
+
+        private UserProfileResponse ParseUserProfile(string resp)
+        {
+            var response = ParseResponse<UserProfileResponse>(resp);
+            return response;
         }
 
         private async Task ParseClientSync(string resp)
         {
             try
             {
-                    Responses.MatrixSync response = Newtonsoft.Json.JsonConvert.DeserializeObject<Responses.MatrixSync>(resp);
+                    var response = JsonConvert.DeserializeObject<MatrixSync>(resp);
 
                     SyncToken = response.NextBatch;
 
@@ -121,97 +112,40 @@ namespace libMatrix
 
         private string ParseMediaUpload(string resp)
         {
-            try
-            {
-                using (MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(resp)))
-                {
-                    var ser = new DataContractJsonSerializer(typeof(Responses.Media.MediaUploadResponse));
-                    Responses.Media.MediaUploadResponse response = (ser.ReadObject(stream) as Responses.Media.MediaUploadResponse);
-
-                    return response.ContentUri;
-                }
-            }
-            catch
-            {
-                throw new MatrixException("Failed to parse MediaUpload");
-            }
+            var response = ParseResponse<MediaUploadResponse>(resp);
+            return response.ContentUri;
         }
 
         private List<string> ParseJoinedRooms(string resp)
         {
-            try
-            {
-                using (MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(resp)))
-                {
-                    var ser = new DataContractJsonSerializer(typeof(Responses.JoinedRooms));
-                    Responses.JoinedRooms response = (ser.ReadObject(stream) as Responses.JoinedRooms);
-
-                    var thing = response.Rooms;
-                    return thing;
-                }
-            }
-            catch
-            {
-                throw new MatrixException("Failed to parse JoinedRooms");
-            }
+            var response = ParseResponse<JoinedRooms>(resp);
+            var thing = response.Rooms;
+            return thing;
         }
 
-        private void ParseCreatedRoom(string resp)
+        private CreateRoom ParseCreatedRoom(string resp)
         {
-            try
-            {
-                using (MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(resp)))
-                {
-                    var ser = new DataContractJsonSerializer(typeof(Responses.Rooms.CreateRoom));
-                    Responses.Rooms.CreateRoom response = (ser.ReadObject(stream) as Responses.Rooms.CreateRoom);
-
-                    Events.FireRoomCreateEvent(response.RoomID);
-                }
-            }
-            catch
-            {
-                throw new MatrixException("Failed to parse CreatedRoom");
-            }
+            var response = ParseResponse<CreateRoom>(resp);
+            Events.FireRoomCreateEvent(response.RoomID);
+            return response;
         }
 
-        private void ParseRoomAlias(string resp)
+        private RoomAlias ParseRoomAlias(string resp)
         {
-            try
-            {
-                using (MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(resp)))
-                {
-                    var ser = new DataContractJsonSerializer(typeof(Responses.Rooms.RoomAlias));
-                    Responses.Rooms.RoomAlias response = (ser.ReadObject(stream) as Responses.Rooms.RoomAlias);
-
-                    Events.FireRoomAliasEvent(response.RoomID, response.Servers);
-                }
-            }
-            catch
-            {
-                throw new MatrixException("Failed to parse CreatedRoom");
-            }
+            var response = ParseResponse<RoomAlias>(resp);
+            Events.FireRoomAliasEvent(response.RoomID, response.Servers);
+            return response;
         }
 
         private void ParseNotifications(string resp)
         {
-            try
+            var response = ParseResponse<MatrixNotifications>(resp);
+
+            Console.WriteLine("Notifications received.");
+
+            foreach (var notification in response.Notifications)
             {
-                using (MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(resp)))
-                {
-                    var ser = new DataContractJsonSerializer(typeof(Responses.Pushers.MatrixNotifications));
-                    Responses.Pushers.MatrixNotifications response = (ser.ReadObject(stream) as Responses.Pushers.MatrixNotifications);
-
-                    Console.WriteLine("Notifications received.");
-
-                    foreach (var notification in response.Notifications)
-                    {
-                        Events.FireNotificationEvent(notification);
-                    }
-                }
-            }
-            catch
-            {
-
+                Events.FireNotificationEvent(notification);
             }
         }
     }
