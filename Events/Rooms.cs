@@ -28,19 +28,22 @@ namespace libMatrix
             public string RoomID { get; set; }
         }
 
-        public delegate void RoomJoinEventDelegate(object sender, RoomJoinEventArgs e);
-        public delegate void RoomInviteEventDelegate(object sender, RoomInviteEventArgs e);
-        public delegate void RoomLeaveEventDelegate(object sender, RoomLeaveEventArgs e);
-        public delegate void RoomCreateEventDelegate(object sender, RoomCreateEventArgs e);
+        public class RoomAliasEventArgs : EventArgs
+        {
+            public string RoomID { get; set; }
+            public string[] Servers { get; set; }
+        }
 
-        public event RoomJoinEventDelegate RoomJoinEvent;
-        public event RoomInviteEventDelegate RoomInviteEvent;
-        public event RoomLeaveEventDelegate RoomLeaveEvent;
-        public event RoomCreateEventDelegate RoomCreateEvent;
+        public event EventHandler<RoomJoinEventArgs> RoomJoinEvent;
+        public event EventHandler<RoomInviteEventArgs> RoomInviteEvent;
+        public event EventHandler<RoomLeaveEventArgs> RoomLeaveEvent;
+        public event EventHandler<RoomCreateEventArgs> RoomCreateEvent;
+        public event EventHandler<RoomAliasEventArgs> RoomAliasEvent;
 
         internal void FireRoomJoinEvent(string room, MatrixEventRoomJoined evt) => RoomJoinEvent?.Invoke(this, new RoomJoinEventArgs() { Room = room, Event = evt });
         internal void FireRoomInviteEvent(string room, MatrixEventRoomInvited evt) => RoomInviteEvent?.Invoke(this, new RoomInviteEventArgs() { Room = room, Event = evt });
         internal void FireRoomLeaveEvent(string room, MatrixEventRoomLeft evt) => RoomLeaveEvent?.Invoke(this, new RoomLeaveEventArgs() { Room = room, Event = evt });
         internal void FireRoomCreateEvent(string room) => RoomCreateEvent?.Invoke(this, new RoomCreateEventArgs() { RoomID = room });
+        internal void FireRoomAliasEvent(string room, string[] servers) => RoomAliasEvent?.Invoke(this, new RoomAliasEventArgs() { RoomID = room, Servers = servers });
     }
 }
