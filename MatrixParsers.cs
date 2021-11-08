@@ -174,6 +174,24 @@ namespace libMatrix
             }
         }
 
+        private void ParseRoomAlias(string resp)
+        {
+            try
+            {
+                using (MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(resp)))
+                {
+                    var ser = new DataContractJsonSerializer(typeof(Responses.Rooms.RoomAlias));
+                    Responses.Rooms.RoomAlias response = (ser.ReadObject(stream) as Responses.Rooms.RoomAlias);
+
+                    Events.FireRoomAliasEvent(response.RoomID, response.Servers);
+                }
+            }
+            catch
+            {
+                throw new MatrixException("Failed to parse CreatedRoom");
+            }
+        }
+
         private void ParseNotifications(string resp)
         {
             try

@@ -265,6 +265,23 @@ namespace libMatrix
             throw new MatrixException(err.ToString());
         }
 
+        public async Task<bool> ResolveRoomAlias(string roomAlias)
+        {
+            if (!roomAlias.StartsWith("#"))
+                roomAlias = '#' + roomAlias;
+
+            var tuple = await _backend.Get(string.Format("/_matrix/client/r0/directory/room/{0}", Uri.EscapeDataString(roomAlias)), true);
+            MatrixRequestError err = tuple.Item1;
+            string result = tuple.Item2;
+            if (err.IsOk)
+            {
+                ParseRoomAlias(result);
+                return true;
+            }
+
+            return false;
+        }
+
         public async Task<bool> JoinRoom(string roomId)
         {
             Requests.Rooms.MatrixRoomJoin roomJoin = new Requests.Rooms.MatrixRoomJoin();
