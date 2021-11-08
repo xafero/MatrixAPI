@@ -1,7 +1,13 @@
 ﻿using libMatrix.Backends;
+using libMatrix.Requests.Presence;
+using libMatrix.Requests.Pushers;
+using libMatrix.Requests.Rooms;
+using libMatrix.Requests.Rooms.Message;
+using libMatrix.Requests.UserData;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -150,7 +156,7 @@ namespace libMatrix
             string result = tuple.Item2;
             if (err.IsOk)
             {
-                Responses.UserData.UserProfileResponse profileResponse = ParseUserProfile(result);
+                var profileResponse = ParseUserProfile(result);
 
                 Events.FireUserProfileReceivedEvent(userId, profileResponse.AvatarUrl, profileResponse.DisplayName);
             }
@@ -162,7 +168,7 @@ namespace libMatrix
 
         public async Task<bool> ClientSetDisplayName(string displayName)
         {
-            Requests.UserData.UserProfileSetDisplayName req = new Requests.UserData.UserProfileSetDisplayName() { DisplayName = displayName };
+            var req = new UserProfileSetDisplayName { DisplayName = displayName };
             var tuple = await _backend.Put(string.Format("/_matrix/client/r0/profile/{0}/displayname", Uri.EscapeDataString(UserID)), true, Helpers.JsonHelper.Serialize(req));
             MatrixRequestError err = tuple.Item1;
             string result = tuple.Item2;
@@ -175,7 +181,7 @@ namespace libMatrix
 
         public async Task<bool> ClientSetAvatar(string avatarUrl)
         {
-            Requests.UserData.UserProfileSetAvatar req = new Requests.UserData.UserProfileSetAvatar() { AvatarUrl = avatarUrl };
+            var req = new UserProfileSetAvatar { AvatarUrl = avatarUrl };
             var tuple = await _backend.Put(string.Format("/_matrix/client/r0/profile/{0}/displayname", Uri.EscapeDataString(UserID)), true, Helpers.JsonHelper.Serialize(req));
             MatrixRequestError err = tuple.Item1;
             string result = tuple.Item2;
@@ -188,7 +194,7 @@ namespace libMatrix
 
         public async Task<bool> ClientSetPresence(string presence, string statusMessage = null)
         {
-            Requests.Presence.MatrixSetPresence req = new Requests.Presence.MatrixSetPresence()
+            var req = new MatrixSetPresence
             {
                 Presence = presence
             };
@@ -253,7 +259,7 @@ namespace libMatrix
 
         public async Task<bool> InviteToRoom(string roomId, string userId)
         {
-            Requests.Rooms.MatrixRoomInvite invite = new Requests.Rooms.MatrixRoomInvite() { UserID = userId };
+			var invite = new MatrixRoomInvite { UserID = userId };
             var tuple = await _backend.Post(string.Format("/_matrix/client/r0/rooms/{0}/invite", System.Uri.EscapeDataString(roomId)), true, Helpers.JsonHelper.Serialize(invite));
             MatrixRequestError err = tuple.Item1;
             string result = tuple.Item2;
@@ -265,7 +271,7 @@ namespace libMatrix
             throw new MatrixException(err.ToString());
         }
 
-        public async Task<bool> ResolveRoomAlias(string roomAlias)
+        public async Task<string> ResolveRoomAlias(string roomAlias)
         {
             if (!roomAlias.StartsWith("#"))
                 roomAlias = '#' + roomAlias;
@@ -275,16 +281,15 @@ namespace libMatrix
             string result = tuple.Item2;
             if (err.IsOk)
             {
-                ParseRoomAlias(result);
-                return true;
+                return ParseRoomAlias(result).RoomID;
             }
 
-            return false;
+            return null;
         }
 
         public async Task<bool> JoinRoom(string roomId)
         {
-            Requests.Rooms.MatrixRoomJoin roomJoin = new Requests.Rooms.MatrixRoomJoin();
+			var roomJoin = new MatrixRoomJoin();
             var tuple = await _backend.Post(string.Format("/_matrix/client/r0/rooms/{0}/join", Uri.EscapeDataString(roomId)), true, Helpers.JsonHelper.Serialize(roomJoin));
             MatrixRequestError err = tuple.Item1;
             string result = tuple.Item2;
@@ -296,14 +301,14 @@ namespace libMatrix
             return false;
         }
 
-        public async Task<bool> CreateRoom(string roomName, string roomTopic, bool isDirect = false, 
+        public async Task<string> CreateRoom(string roomName, string roomTopic, bool isDirect = false, 
             string[] invite = null, bool isPublic = true, string roomAlias = null)
         {
             if (string.IsNullOrWhiteSpace(roomName))
-                return false;
+                return null;
 
-            Requests.Rooms.MatrixRoomCreate roomCreate = new Requests.Rooms.MatrixRoomCreate
-            {
+            var roomCreate = new MatrixRoomCreate
+			{
                 Name = roomName,
                 IsDirect = isDirect,
                 InviteList = (invite ?? new string[0]).ToList(),
@@ -319,23 +324,21 @@ namespace libMatrix
             {
                 try
                 {
-                    ParseCreatedRoom(result);
-                    return true;
+                    return ParseCreatedRoom(result).RoomID;
                 }
                 catch (MatrixException)
                 {
-                    // Failed to create the room
-                    return false;
+                    return null;
                 }
             }
 
-            return false;
+            return null;
         }
 
         public async Task<bool> AddRoomAlias(string roomId, string alias)
         {
-            Requests.Rooms.MatrixRoomAddAlias roomAddAlias = new Requests.Rooms.MatrixRoomAddAlias
-            {
+			var roomAddAlias = new MatrixRoomAddAlias
+			{
                 RoomID = roomId
             };
 
@@ -375,7 +378,7 @@ namespace libMatrix
 
         public async void RoomTypingSend(string roomId, bool typing, int timeout = 0)
         {
-            Requests.Rooms.MatrixRoomSendTyping req = new Requests.Rooms.MatrixRoomSendTyping() { Typing = typing };
+			var req = new MatrixRoomSendTyping { Typing = typing };
             if (timeout > 0)
                 req.Timeout = timeout;
 
@@ -427,9 +430,10 @@ namespace libMatrix
 
             return false;
         }
+        
         public async Task<bool> SendTextMessageToRoom(string roomId, string message)
         {
-            Requests.Rooms.Message.MatrixRoomMessageText req = new Requests.Rooms.Message.MatrixRoomMessageText()
+            var req = new MatrixRoomMessageText
             {
                 Body = message
             };
@@ -443,7 +447,7 @@ namespace libMatrix
             sb.Append(lat);
             sb.Append(",");
             sb.Append(lon);
-            Requests.Rooms.Message.MatrixRoomMessageLocation req = new Requests.Rooms.Message.MatrixRoomMessageLocation()
+            var req = new MatrixRoomMessageLocation
             {
                 Description = description,
                 GeoUri = sb.ToString()
@@ -454,7 +458,7 @@ namespace libMatrix
 
         public async Task<bool> SetPusher(string pushUrl, string pushKey)
         {
-            Requests.Pushers.MatrixSetPusher req = new Requests.Pushers.MatrixSetPusher()
+            var req = new MatrixSetPusher
             {
                 PushKey = pushKey,
                 Kind = "http",
@@ -464,8 +468,8 @@ namespace libMatrix
                 Language = "en",
                 Append = false
             };
-            req.Data = new Requests.Pushers.MatrixPusherData()
-            {
+            req.Data = new MatrixPusherData
+			{
                 Url = pushUrl,
                 Format = "event_id_only"
             };
@@ -485,9 +489,9 @@ namespace libMatrix
 
         public async Task<bool> GetNotifications(string from = "", int limit = -1, string only = "")
         {
-            StringBuilder url = new StringBuilder("/_matrix/client/r0/notifications");
+            var url = new StringBuilder("/_matrix/client/r0/notifications");
 
-            Dictionary<string, string> urlParams = new Dictionary<string, string>();
+            var urlParams = new Dictionary<string, string>();
             if (!string.IsNullOrEmpty(from))
                 urlParams.Add("from", from);
             if (limit != -1)
@@ -497,7 +501,7 @@ namespace libMatrix
 
             if (urlParams.Count > 0)
             {
-                var enc = new System.Net.Http.FormUrlEncodedContent(urlParams);
+                var enc = new FormUrlEncodedContent(urlParams);
                 url.Append("?" + enc.ReadAsStringAsync().Result);
             }
 
