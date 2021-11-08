@@ -96,7 +96,7 @@ namespace libMatrix.Backends
 
         public async Task<Tuple<MatrixRequestError, string>> Put(string path, bool authenticate, string request)
         {
-            StringContent content = new StringContent(request, Encoding.UTF8, "application/json");
+            var content = new StringContent(request, Encoding.UTF8, "application/json");
 
             string apiPath = GetPath(path, authenticate);
             HttpResponseMessage task = await _client.PutAsync(apiPath, content);
@@ -154,10 +154,10 @@ namespace libMatrix.Backends
             if (!task.IsSuccessStatusCode)
             {
                 // If its not a success, parse the error code from the json
-                using (MemoryStream stream = new MemoryStream(Encoding.UTF8.GetBytes(result)))
+                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(result)))
                 {
                     var ser = new DataContractJsonSerializer(typeof(Responses.Error));
-                    Responses.Error response = (ser.ReadObject(stream) as Responses.Error);
+                    var response = (ser.ReadObject(stream) as Responses.Error);
                     if (!string.IsNullOrEmpty(response.ErrorCode))
                     {
                         throw new MatrixServerError(response.ErrorCode, response.ErrorMsg);

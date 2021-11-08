@@ -1,4 +1,5 @@
 ﻿using System;
+using libMatrix.Responses.Session;
 
 namespace libMatrix
 {
@@ -15,12 +16,12 @@ namespace libMatrix
         public event EventHandler<LoginEventArgs> LoginEvent;
         public event EventHandler<LoginEventArgs> LogoutEvent;
 
-        internal void FireLoginFailEvent(string message) => LoginFailEvent?.Invoke(this, new ErrorEventArgs() { Message = message });
-        internal void FireLoginEvent(Responses.Session.LoginResponse resp) => LoginEvent?.Invoke(this, new LoginEventArgs() {
+        internal void FireLoginFailEvent(string message) => LoginFailEvent?.Invoke(this, new ErrorEventArgs { Message = message });
+        internal void FireLoginEvent(LoginResponse resp) => LoginEvent?.Invoke(this, new LoginEventArgs {
             AccessToken = resp.AccessToken,
             DeviceID = resp.DeviceID,
             UserID = resp.UserID
         });
-        internal void FireLogoutEvent() => LogoutEvent?.Invoke(this, new LoginEventArgs() { });
+        internal void FireLogoutEvent() => LogoutEvent?.Invoke(this, new LoginEventArgs { });
     }
 }

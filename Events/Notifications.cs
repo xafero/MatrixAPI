@@ -12,6 +12,6 @@ namespace libMatrix
 
         public event EventHandler<NotificationEventArgs> NotificationEvent;
 
-        internal void FireNotificationEvent(Notification notif) => NotificationEvent?.Invoke(this, new NotificationEventArgs() { Notification = notif });
+        internal void FireNotificationEvent(Notification notif) => NotificationEvent?.Invoke(this, new NotificationEventArgs { Notification = notif });
     }
 }

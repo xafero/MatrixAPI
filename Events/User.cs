@@ -13,6 +13,6 @@ namespace libMatrix
 
         public event EventHandler<UserProfileEventArgs> UserProfileEvent;
 
-        internal void FireUserProfileReceivedEvent(string userId, string avatarUrl, string displayName) => UserProfileEvent?.Invoke(this, new UserProfileEventArgs() { UserID = userId, AvatarUrl = avatarUrl, DisplayName = displayName });
+        internal void FireUserProfileReceivedEvent(string userId, string avatarUrl, string displayName) => UserProfileEvent?.Invoke(this, new UserProfileEventArgs { UserID = userId, AvatarUrl = avatarUrl, DisplayName = displayName });
     }
 }

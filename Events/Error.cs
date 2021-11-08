@@ -11,6 +11,6 @@ namespace libMatrix
 
         public event EventHandler<ErrorEventArgs> ErrorEvent;
 
-        internal void FireErrorEvent(string err) => ErrorEvent?.Invoke(this, new ErrorEventArgs() { Message = err });
+        internal void FireErrorEvent(string err) => ErrorEvent?.Invoke(this, new ErrorEventArgs { Message = err });
     }
 }

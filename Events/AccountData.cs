@@ -12,6 +12,6 @@ namespace libMatrix
 
         public event EventHandler<AccountDataEventArgs> AccountDataEvent;
 
-        internal void FireAccountDataEvent(MatrixEvents evt) => AccountDataEvent?.Invoke(this, new AccountDataEventArgs() { Event = evt });
+        internal void FireAccountDataEvent(MatrixEvents evt) => AccountDataEvent?.Invoke(this, new AccountDataEventArgs { Event = evt });
     }
 }

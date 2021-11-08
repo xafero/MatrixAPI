@@ -216,7 +216,7 @@ namespace libMatrix
 
         public async Task<string> MediaUpload(string contentType, byte[] data)
         {
-            var tuple = await _backend.Post("/_matrix/media/r0/upload", true, data, new Dictionary<string, string>() { { "Content-Type", contentType } });
+            var tuple = await _backend.Post("/_matrix/media/r0/upload", true, data, new Dictionary<string, string> { { "Content-Type", contentType } });
             MatrixRequestError err = tuple.Item1;
             string result = tuple.Item2;
             if (err.IsOk)

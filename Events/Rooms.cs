@@ -40,10 +40,10 @@ namespace libMatrix
         public event EventHandler<RoomCreateEventArgs> RoomCreateEvent;
         public event EventHandler<RoomAliasEventArgs> RoomAliasEvent;
 
-        internal void FireRoomJoinEvent(string room, MatrixEventRoomJoined evt) => RoomJoinEvent?.Invoke(this, new RoomJoinEventArgs() { Room = room, Event = evt });
-        internal void FireRoomInviteEvent(string room, MatrixEventRoomInvited evt) => RoomInviteEvent?.Invoke(this, new RoomInviteEventArgs() { Room = room, Event = evt });
-        internal void FireRoomLeaveEvent(string room, MatrixEventRoomLeft evt) => RoomLeaveEvent?.Invoke(this, new RoomLeaveEventArgs() { Room = room, Event = evt });
-        internal void FireRoomCreateEvent(string room) => RoomCreateEvent?.Invoke(this, new RoomCreateEventArgs() { RoomID = room });
-        internal void FireRoomAliasEvent(string room, string[] servers) => RoomAliasEvent?.Invoke(this, new RoomAliasEventArgs() { RoomID = room, Servers = servers });
+        internal void FireRoomJoinEvent(string room, MatrixEventRoomJoined evt) => RoomJoinEvent?.Invoke(this, new RoomJoinEventArgs { Room = room, Event = evt });
+        internal void FireRoomInviteEvent(string room, MatrixEventRoomInvited evt) => RoomInviteEvent?.Invoke(this, new RoomInviteEventArgs { Room = room, Event = evt });
+        internal void FireRoomLeaveEvent(string room, MatrixEventRoomLeft evt) => RoomLeaveEvent?.Invoke(this, new RoomLeaveEventArgs { Room = room, Event = evt });
+        internal void FireRoomCreateEvent(string room) => RoomCreateEvent?.Invoke(this, new RoomCreateEventArgs { RoomID = room });
+        internal void FireRoomAliasEvent(string room, string[] servers) => RoomAliasEvent?.Invoke(this, new RoomAliasEventArgs { RoomID = room, Servers = servers });
     }
 }
