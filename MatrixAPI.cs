@@ -279,18 +279,21 @@ namespace libMatrix
             return false;
         }
 
-        public async Task<bool> CreateRoom(string roomName, string roomTopic, bool isDirect = false)
+        public async Task<bool> CreateRoom(string roomName, string roomTopic, bool isDirect = false, 
+            string[] invite = null, bool isPublic = true, string roomAlias = null)
         {
-            if (string.IsNullOrEmpty(roomName))
+            if (string.IsNullOrWhiteSpace(roomName))
                 return false;
 
             Requests.Rooms.MatrixRoomCreate roomCreate = new Requests.Rooms.MatrixRoomCreate
             {
                 Name = roomName,
-                IsDirect = isDirect
+                IsDirect = isDirect,
+                InviteList = (invite ?? new string[0]).ToList(),
+                Topic = roomTopic,
+                Visibility = isPublic ? "public" : "private",
+                RoomAliasName = roomAlias
             };
-            if (string.IsNullOrEmpty(roomTopic))
-                roomCreate.Topic = roomTopic;
 
             var tuple = await _backend.Post("/_matrix/client/r0/createRoom", true, Helpers.JsonHelper.Serialize(roomCreate));
             MatrixRequestError err = tuple.Item1;
