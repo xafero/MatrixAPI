@@ -10,9 +10,7 @@ namespace libMatrix
             public Notification Notification { get; set; }
         }
 
-        public delegate void NotificationEventDelegate(object sender, NotificationEventArgs e);
-
-        public event NotificationEventDelegate NotificationEvent;
+        public event EventHandler<NotificationEventArgs> NotificationEvent;
 
         internal void FireNotificationEvent(Notification notif) => NotificationEvent?.Invoke(this, new NotificationEventArgs() { Notification = notif });
     }

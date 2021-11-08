@@ -9,9 +9,7 @@ namespace libMatrix
             public string Message { get; set; }
         }
 
-        public delegate void ErrorOccurred(object sender, ErrorEventArgs e);
-
-        public event ErrorOccurred ErrorEvent;
+        public event EventHandler<ErrorEventArgs> ErrorEvent;
 
         internal void FireErrorEvent(string err) => ErrorEvent?.Invoke(this, new ErrorEventArgs() { Message = err });
     }

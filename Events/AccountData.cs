@@ -10,9 +10,7 @@ namespace libMatrix
             public MatrixEvents Event;
         }
 
-        public delegate void AccountDataDelegate(object sender, AccountDataEventArgs e);
-
-        public event AccountDataDelegate AccountDataEvent;
+        public event EventHandler<AccountDataEventArgs> AccountDataEvent;
 
         internal void FireAccountDataEvent(MatrixEvents evt) => AccountDataEvent?.Invoke(this, new AccountDataEventArgs() { Event = evt });
     }
