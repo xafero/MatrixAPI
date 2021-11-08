@@ -1,4 +1,5 @@
 ﻿using System.Runtime.Serialization;
+using libMatrix.APITypes;
 
 namespace libMatrix.Requests.Rooms.Message
 {
@@ -8,7 +9,7 @@ namespace libMatrix.Requests.Rooms.Message
         public MatrixRoomMessageLocation()
             : base()
         {
-            base.MessageType = "m.location";
+            MessageType = "m.location";
         }
 
         [DataMember(Name = "body", IsRequired = true)]
@@ -17,10 +18,7 @@ namespace libMatrix.Requests.Rooms.Message
         [DataMember(Name = "geo_uri", IsRequired = true)]
         public string GeoUri { get; set; }
 
-        [DataMember(Name = "thumbnail_url", IsRequired = false)]
-        public string ThumbnailUrl { get; set; }
-
-        [DataMember(Name = "thumbnail_info", IsRequired = false)]
-        public APITypes.MatrixContentImageInfo ThumbnailInfo { get; set; }
+        [DataMember(Name = "info", IsRequired = false)]
+        public MatrixThumbnailInfo ThumbnailInfo { get; set; }
     }
 }

@@ -3,12 +3,12 @@
 namespace libMatrix.Requests.Rooms.Message
 {
 	[DataContract]
-	public class MatrixRoomMessageImage : MatrixRoomMessageBase, IFileMessage
+	public class MatrixRoomMessageVideo : MatrixRoomMessageBase, IFileMessage
 	{
-		public MatrixRoomMessageImage()
+		public MatrixRoomMessageVideo()
 			: base()
 		{
-			MessageType = "m.image";
+			MessageType = "m.video";
 		}
 
 		[DataMember(Name = "body", IsRequired = true)]

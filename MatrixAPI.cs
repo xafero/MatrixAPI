@@ -1,11 +1,14 @@
 ﻿using libMatrix.Backends;
+using libMatrix.Helpers;
 using libMatrix.Requests.Presence;
 using libMatrix.Requests.Pushers;
 using libMatrix.Requests.Rooms;
 using libMatrix.Requests.Rooms.Message;
 using libMatrix.Requests.UserData;
+using MimeTypes;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -120,7 +123,7 @@ namespace libMatrix
         [MatrixSpec("r0.0.1/client_server.html#post-matrix-client-r0-register")]
         public async void ClientRegister(Requests.Session.MatrixRegister registration)
         {
-            var tuple = await _backend.Post("/_matrix/client/r0/register", false, Helpers.JsonHelper.Serialize(registration));
+            var tuple = await _backend.Post("/_matrix/client/r0/register", false, JsonHelper.Serialize(registration));
             MatrixRequestError err = tuple.Item1;
             string result = tuple.Item2;
             if (err.IsOk)
@@ -134,7 +137,7 @@ namespace libMatrix
         [MatrixSpec("r0.0.1/client_server.html#post-matrix-client-r0-login")]
         public async Task ClientLogin(Requests.Session.MatrixLogin login)
         {
-            var tuple = await _backend.Post("/_matrix/client/r0/login", false, Helpers.JsonHelper.Serialize(login));
+            var tuple = await _backend.Post("/_matrix/client/r0/login", false, JsonHelper.Serialize(login));
             MatrixRequestError err = tuple.Item1;
             string result = tuple.Item2;
             if (err.IsOk)
@@ -169,7 +172,7 @@ namespace libMatrix
         public async Task<bool> ClientSetDisplayName(string displayName)
         {
             var req = new UserProfileSetDisplayName { DisplayName = displayName };
-            var tuple = await _backend.Put(string.Format("/_matrix/client/r0/profile/{0}/displayname", Uri.EscapeDataString(UserID)), true, Helpers.JsonHelper.Serialize(req));
+            var tuple = await _backend.Put(string.Format("/_matrix/client/r0/profile/{0}/displayname", Uri.EscapeDataString(UserID)), true, JsonHelper.Serialize(req));
             MatrixRequestError err = tuple.Item1;
             string result = tuple.Item2;
             if (err.IsOk)
@@ -182,7 +185,7 @@ namespace libMatrix
         public async Task<bool> ClientSetAvatar(string avatarUrl)
         {
             var req = new UserProfileSetAvatar { AvatarUrl = avatarUrl };
-            var tuple = await _backend.Put(string.Format("/_matrix/client/r0/profile/{0}/displayname", Uri.EscapeDataString(UserID)), true, Helpers.JsonHelper.Serialize(req));
+            var tuple = await _backend.Put(string.Format("/_matrix/client/r0/profile/{0}/displayname", Uri.EscapeDataString(UserID)), true, JsonHelper.Serialize(req));
             MatrixRequestError err = tuple.Item1;
             string result = tuple.Item2;
             if (err.IsOk)
@@ -204,7 +207,7 @@ namespace libMatrix
                 req.StatusMessage = statusMessage;
             }
 
-            var tuple = await _backend.Put(string.Format("/_matrix/client/r0/presence/{0}/status", Uri.EscapeDataString(UserID)), true, Helpers.JsonHelper.Serialize(req));
+            var tuple = await _backend.Put(string.Format("/_matrix/client/r0/presence/{0}/status", Uri.EscapeDataString(UserID)), true, JsonHelper.Serialize(req));
             MatrixRequestError err = tuple.Item1;
             string result = tuple.Item2;
             if (err.IsOk)
@@ -214,18 +217,28 @@ namespace libMatrix
             return false;
         }
 
-        public async Task<string> MediaUpload(string contentType, byte[] data)
+        private async Task<string> UploadMedia(byte[] data, string fileName = null, string contentType = null)
         {
-            var tuple = await _backend.Post("/_matrix/media/r0/upload", true, data, new Dictionary<string, string> { { "Content-Type", contentType } });
+            if (contentType == null && fileName != null)
+            {
+                var fileExt = Path.GetExtension(fileName);
+                contentType = MimeTypeMap.GetMimeType(fileExt);
+            }
+            if (contentType == null)
+            {
+                contentType = "application/octet-stream";
+            }
+
+            var meta = new Dictionary<string, string> { { "Content-Type", contentType } };
+            var tuple = await _backend.Post("/_matrix/media/r0/upload", true, data, meta);
             MatrixRequestError err = tuple.Item1;
             string result = tuple.Item2;
             if (err.IsOk)
             {
-                // Parse response
                 return ParseMediaUpload(result);
             }
 
-            return "";
+            return null;
         }
 
         public string GetMediaDownloadUri(string contentUrl)
@@ -260,7 +273,7 @@ namespace libMatrix
         public async Task<bool> InviteToRoom(string roomId, string userId)
         {
 			var invite = new MatrixRoomInvite { UserID = userId };
-            var tuple = await _backend.Post(string.Format("/_matrix/client/r0/rooms/{0}/invite", System.Uri.EscapeDataString(roomId)), true, Helpers.JsonHelper.Serialize(invite));
+            var tuple = await _backend.Post(string.Format("/_matrix/client/r0/rooms/{0}/invite", Uri.EscapeDataString(roomId)), true, JsonHelper.Serialize(invite));
             MatrixRequestError err = tuple.Item1;
             string result = tuple.Item2;
             if (err.IsOk)
@@ -290,7 +303,7 @@ namespace libMatrix
         public async Task<bool> JoinRoom(string roomId)
         {
 			var roomJoin = new MatrixRoomJoin();
-            var tuple = await _backend.Post(string.Format("/_matrix/client/r0/rooms/{0}/join", Uri.EscapeDataString(roomId)), true, Helpers.JsonHelper.Serialize(roomJoin));
+            var tuple = await _backend.Post(string.Format("/_matrix/client/r0/rooms/{0}/join", Uri.EscapeDataString(roomId)), true, JsonHelper.Serialize(roomJoin));
             MatrixRequestError err = tuple.Item1;
             string result = tuple.Item2;
             if (err.IsOk)
@@ -317,7 +330,7 @@ namespace libMatrix
                 RoomAliasName = roomAlias
             };
 
-            var tuple = await _backend.Post("/_matrix/client/r0/createRoom", true, Helpers.JsonHelper.Serialize(roomCreate));
+            var tuple = await _backend.Post("/_matrix/client/r0/createRoom", true, JsonHelper.Serialize(roomCreate));
             MatrixRequestError err = tuple.Item1;
             string result = tuple.Item2;
             if (err.IsOk)
@@ -342,7 +355,7 @@ namespace libMatrix
                 RoomID = roomId
             };
 
-            var tuple = await _backend.Put(string.Format("/_matrix/client/r0/directory/room/{0}", Uri.EscapeDataString(alias)), true, Helpers.JsonHelper.Serialize(roomAddAlias));
+            var tuple = await _backend.Put(string.Format("/_matrix/client/r0/directory/room/{0}", Uri.EscapeDataString(alias)), true, JsonHelper.Serialize(roomAddAlias));
             MatrixRequestError err = tuple.Item1;
             string result = tuple.Item2;
             if (err.IsOk)
@@ -382,7 +395,7 @@ namespace libMatrix
             if (timeout > 0)
                 req.Timeout = timeout;
 
-            var tuple = await _backend.Put(string.Format("/_matrix/client/r0/rooms/{0}/typing/{1}", Uri.EscapeDataString(roomId), Uri.EscapeDataString(UserID)), true, Helpers.JsonHelper.Serialize(req));
+            var tuple = await _backend.Put(string.Format("/_matrix/client/r0/rooms/{0}/typing/{1}", Uri.EscapeDataString(roomId), Uri.EscapeDataString(UserID)), true, JsonHelper.Serialize(req));
             MatrixRequestError err = tuple.Item1;
             string result = tuple.Item2;
             if (!err.IsOk)
@@ -430,20 +443,42 @@ namespace libMatrix
 
             return false;
         }
-        
-        public async Task<bool> SendTextMessageToRoom(string roomId, string message)
-        {
-            var req = new MatrixRoomMessageText
-            {
-                Body = message
-            };
 
-            return await SendEventToRoom(roomId, "m.room.message", Helpers.JsonHelper.Serialize(req));
+        public async Task<bool> SendTextMessageToRoom(string roomId, string message, TextMessageKind kind = default)
+        {
+            ITextMessage req;
+            switch (kind)
+            {
+                case TextMessageKind.Text: req = new MatrixRoomMessageText(); break;
+                case TextMessageKind.Notice: req = new MatrixRoomMessageNotice(); break;
+                case TextMessageKind.Emote: req = new MatrixRoomMessageEmote(); break;
+                default: throw new InvalidOperationException(kind.ToString());
+            }
+            req.Body = message;
+
+            return await SendEventToRoom(roomId, "m.room.message", JsonHelper.Serialize(req));
+        }
+
+        public async Task<bool> SendFileMessageToRoom(string roomId, string fileName, byte[] bytes, FileMessageKind kind = default)
+        {
+            IFileMessage req;
+            switch (kind)
+            {
+                case FileMessageKind.Image: req = new MatrixRoomMessageImage(); break;
+                case FileMessageKind.Audio: req = new MatrixRoomMessageAudio(); break;
+                case FileMessageKind.File: req = new MatrixRoomMessageFile(); break;
+                case FileMessageKind.Video: req = new MatrixRoomMessageVideo(); break;
+                default: throw new InvalidOperationException(kind.ToString());
+            }
+            req.Description = fileName;
+            req.MediaUrl = await UploadMedia(bytes, fileName);
+
+            return await SendEventToRoom(roomId, "m.room.message", JsonHelper.Serialize(req));
         }
 
         public async Task<bool> SendLocationToRoom(string roomId, string description, double lat, double lon)
         {
-            StringBuilder sb = new StringBuilder("geo:");
+            var sb = new StringBuilder("geo:");
             sb.Append(lat);
             sb.Append(",");
             sb.Append(lon);
@@ -453,7 +488,7 @@ namespace libMatrix
                 GeoUri = sb.ToString()
             };
 
-            return await SendEventToRoom(roomId, "m.room.message", Helpers.JsonHelper.Serialize(req));
+            return await SendEventToRoom(roomId, "m.room.message", JsonHelper.Serialize(req));
         }
 
         public async Task<bool> SetPusher(string pushUrl, string pushKey)
@@ -474,7 +509,7 @@ namespace libMatrix
                 Format = "event_id_only"
             };
 
-            var jsonData = Helpers.JsonHelper.Serialize(req);
+            var jsonData = JsonHelper.Serialize(req);
 
             var tuple = await _backend.Post("/_matrix/client/r0/pushers/set", true, jsonData);
             MatrixRequestError err = tuple.Item1;

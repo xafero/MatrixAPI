@@ -3,12 +3,12 @@
 namespace libMatrix.Requests.Rooms.Message
 {
 	[DataContract]
-	public class MatrixRoomMessageText : MatrixRoomMessageBase, ITextMessage
+	public class MatrixRoomMessageNotice : MatrixRoomMessageBase, ITextMessage
 	{
-		public MatrixRoomMessageText()
+		public MatrixRoomMessageNotice()
 			: base()
 		{
-			MessageType = "m.text";
+			MessageType = "m.notice";
 		}
 
 		[DataMember(Name = "body")]
